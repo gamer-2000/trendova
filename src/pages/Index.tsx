@@ -25,7 +25,6 @@ const Index: React.FC = () => {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string>();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // 💸 NEW STATES
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [showDonateModal, setShowDonateModal] = useState(false);
 
@@ -63,6 +62,8 @@ const Index: React.FC = () => {
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
+
+      console.log("Generated content:", data);
 
       const newContent = { ...content, [tab]: data };
       setContent(newContent);
@@ -153,7 +154,6 @@ const Index: React.FC = () => {
               History
             </button>
 
-            {/* HERO */}
             <div className="text-center space-y-3">
               <h1 className="text-3xl sm:text-4xl font-extrabold">
                 Generate <span className="gradient-text">Viral Content</span>
@@ -163,7 +163,6 @@ const Index: React.FC = () => {
               </p>
             </div>
 
-            {/* ❤️ DONATE BUTTON */}
             <div className="text-center">
               <button
                 onClick={() => setShowDonateModal(true)}
@@ -179,7 +178,6 @@ const Index: React.FC = () => {
               disabledMessage={noCredits ? 'No Credits Left' : loading ? 'Generating...' : undefined}
             />
 
-            {/* 💸 NO CREDITS */}
             {noCredits && (
               <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground">
@@ -197,6 +195,33 @@ const Index: React.FC = () => {
 
             {loading && <LoadingState />}
 
+            {/* ✅ FIXED: CONTENT DISPLAY */}
+            {hasContent && !loading && (
+              <div className="space-y-6">
+                <ContentToggle activeTab={activeTab} onChange={setActiveTab} />
+
+                {activeTab === "youtube" && content.youtube && (
+                  <ContentCard title="YouTube Content" data={content.youtube} />
+                )}
+
+                {activeTab === "instagram" && content.instagram && (
+                  <ContentCard title="Instagram Content" data={content.instagram} />
+                )}
+
+                {activeTab === "shorts" && content.shorts && (
+                  <ContentCard title="Shorts Ideas" data={content.shorts} />
+                )}
+
+                <button
+                  onClick={copyAll}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 rounded-lg"
+                >
+                  <Copy className="w-4 h-4" />
+                  Copy All
+                </button>
+              </div>
+            )}
+
             {!hasContent && !loading && (
               <div className="text-center py-16">
                 <div className="text-5xl mb-4">✨</div>
@@ -205,73 +230,10 @@ const Index: React.FC = () => {
                 </p>
               </div>
             )}
+
           </div>
         </main>
       </div>
-
-      {/* 💳 BUY MODAL */}
-      {showBuyModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#111] p-6 rounded-xl text-center w-[320px]">
-            <h2 className="text-xl font-bold mb-2">Buy Credits</h2>
-
-            <p>₹10 → 10 credits</p>
-            <p>₹50 → 70 credits 🔥</p>
-            <p>₹100 → 150 credits 🚀</p>
-
-            <p className="mt-4 text-sm">Email:</p>
-            <p className="font-bold">aaru44968@gmail.com</p>
-
-            <a
-              href="mailto:aaru44968@gmail.com?subject=Buy Credits - Trendova&body=Hi, I want to buy credits.%0APlan:%0AMy account email:%0A"
-              className="block mt-4 px-4 py-2 bg-purple-600 rounded-lg"
-            >
-              Email Now
-            </a>
-
-            <button
-              onClick={() => setShowBuyModal(false)}
-              className="mt-2 px-4 py-2 bg-gray-700 rounded-lg"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ❤️ DONATE MODAL */}
-      {showDonateModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="bg-[#111] p-6 rounded-xl text-center w-[320px]">
-            <h2 className="text-xl font-bold mb-2">Support Trendova ❤️</h2>
-
-            <p className="text-sm text-muted-foreground">
-              If you like this tool, you can support it 🙌
-            </p>
-
-            <p className="mt-2 text-xs text-muted-foreground">
-              Even ₹10 helps a lot 🙏
-            </p>
-
-            <p className="mt-4 text-sm">Email:</p>
-            <p className="font-bold">aaru44968@gmail.com</p>
-
-            <a
-              href="mailto:aaru44968@gmail.com?subject=Donation for Trendova&body=Hi, I want to support Trendova ❤️.%0AAmount:%0A"
-              className="block mt-4 px-4 py-2 bg-pink-600 rounded-lg"
-            >
-              Donate via Email
-            </a>
-
-            <button
-              onClick={() => setShowDonateModal(false)}
-              className="mt-2 px-4 py-2 bg-gray-700 rounded-lg"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
