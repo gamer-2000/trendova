@@ -18,7 +18,7 @@ const Header: React.FC = () => {
             <Zap className="w-4 h-4 text-primary-foreground" />
           </div>
           <h2 className="text-lg font-bold tracking-tight">
-            <span className="gradient-text">ViralGen</span>
+            <span className="gradient-text">Trendova</span>
           </h2>
         </div>
 
