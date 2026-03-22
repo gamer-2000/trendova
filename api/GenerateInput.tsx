@@ -4,9 +4,12 @@ const res = await fetch('/api/generate', {
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    prompt: inputValue, // whatever your input state is
+    prompt: inputValue,
   }),
 });
 
 const data = await res.json();
+
+console.log("DATA COMING:", data); // 👈 IMPORTANT
+
 setOutput(data.result);
