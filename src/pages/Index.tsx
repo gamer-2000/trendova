@@ -25,8 +25,9 @@ const Index: React.FC = () => {
   const [selectedHistoryId, setSelectedHistoryId] = useState<string>();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // ✅ NEW STATE
+  // 💸 NEW STATES
   const [showBuyModal, setShowBuyModal] = useState(false);
+  const [showDonateModal, setShowDonateModal] = useState(false);
 
   const fetchHistory = useCallback(async () => {
     if (!user) return;
@@ -124,7 +125,7 @@ const Index: React.FC = () => {
     }
   };
 
-  const noCredits = true;
+  const noCredits = credits < 5;
   const hasContent = content.youtube || content.instagram || content.shorts;
 
   return (
@@ -152,6 +153,7 @@ const Index: React.FC = () => {
               History
             </button>
 
+            {/* HERO */}
             <div className="text-center space-y-3">
               <h1 className="text-3xl sm:text-4xl font-extrabold">
                 Generate <span className="gradient-text">Viral Content</span>
@@ -161,22 +163,32 @@ const Index: React.FC = () => {
               </p>
             </div>
 
+            {/* ❤️ DONATE BUTTON */}
+            <div className="text-center">
+              <button
+                onClick={() => setShowDonateModal(true)}
+                className="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-sm"
+              >
+                Donate ❤️
+              </button>
+            </div>
+
             <GenerateInput
               onGenerate={(topic) => generate(topic)}
               disabled={noCredits || loading}
               disabledMessage={noCredits ? 'No Credits Left' : loading ? 'Generating...' : undefined}
             />
 
+            {/* 💸 NO CREDITS */}
             {noCredits && (
               <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground">
                   You're out of credits.
                 </p>
 
-                {/* BUY BUTTON */}
                 <button
                   onClick={() => setShowBuyModal(true)}
-                  className="px-4 py-2 bg-purple-600 rounded-lg text-sm mt-2"
+                  className="px-4 py-2 bg-purple-600 rounded-lg text-sm"
                 >
                   Buy Credits
                 </button>
@@ -211,7 +223,7 @@ const Index: React.FC = () => {
             <p className="font-bold">aaru44968@gmail.com</p>
 
             <a
-              href="mailto:aaru44968@gmail.com?subject=Buy Credits&body=Hi, I want to buy credits.%0APlan:%0AMy account email:%0A"
+              href="mailto:aaru44968@gmail.com?subject=Buy Credits - Trendova&body=Hi, I want to buy credits.%0APlan:%0AMy account email:%0A"
               className="block mt-4 px-4 py-2 bg-purple-600 rounded-lg"
             >
               Email Now
@@ -219,6 +231,40 @@ const Index: React.FC = () => {
 
             <button
               onClick={() => setShowBuyModal(false)}
+              className="mt-2 px-4 py-2 bg-gray-700 rounded-lg"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ❤️ DONATE MODAL */}
+      {showDonateModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#111] p-6 rounded-xl text-center w-[320px]">
+            <h2 className="text-xl font-bold mb-2">Support Trendova ❤️</h2>
+
+            <p className="text-sm text-muted-foreground">
+              If you like this tool, you can support it 🙌
+            </p>
+
+            <p className="mt-2 text-xs text-muted-foreground">
+              Even ₹10 helps a lot 🙏
+            </p>
+
+            <p className="mt-4 text-sm">Email:</p>
+            <p className="font-bold">aaru44968@gmail.com</p>
+
+            <a
+              href="mailto:aaru44968@gmail.com?subject=Donation for Trendova&body=Hi, I want to support Trendova ❤️.%0AAmount:%0A"
+              className="block mt-4 px-4 py-2 bg-pink-600 rounded-lg"
+            >
+              Donate via Email
+            </a>
+
+            <button
+              onClick={() => setShowDonateModal(false)}
               className="mt-2 px-4 py-2 bg-gray-700 rounded-lg"
             >
               Close
