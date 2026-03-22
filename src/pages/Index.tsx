@@ -16,6 +16,7 @@ import type { Json } from '@/integrations/supabase/types';
 const Index: React.FC = () => {
   const { user } = useAuth();
   const { credits, deductCredits } = useCredits();
+
   const [activeTab, setActiveTab] = useState<ContentTab>('youtube');
   const [content, setContent] = useState<GeneratedContent>({});
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,9 @@ const Index: React.FC = () => {
   const [history, setHistory] = useState<{ id: string; topic: string; created_at: string }[]>([]);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string>();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // ✅ NEW STATE
+  const [showBuyModal, setShowBuyModal] = useState(false);
 
   const fetchHistory = useCallback(async () => {
     if (!user) return;
@@ -42,7 +46,6 @@ const Index: React.FC = () => {
   const generate = async (topic: string, type?: ContentTab) => {
     const tab = type || activeTab;
 
-    // Check credits
     const result = await deductCredits();
     if (!result.success) {
       toast.error(result.message);
@@ -63,12 +66,12 @@ const Index: React.FC = () => {
       const newContent = { ...content, [tab]: data };
       setContent(newContent);
 
-      // Save to history
       await supabase.from('generations').insert({
         user_id: user!.id,
         topic,
         content: newContent as unknown as Json,
       });
+
       fetchHistory();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Generation failed';
@@ -140,143 +143,50 @@ const Index: React.FC = () => {
 
         <main className="flex-1 overflow-y-auto">
           <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-            {/* Mobile sidebar toggle */}
+
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="lg:hidden flex items-center gap-2 text-sm text-muted-foreground"
             >
               <Menu className="w-4 h-4" />
               History
             </button>
 
-            {/* Hero */}
             <div className="text-center space-y-3">
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-balance">
+              <h1 className="text-3xl sm:text-4xl font-extrabold">
                 Generate <span className="gradient-text">Viral Content</span>
               </h1>
               <p className="text-muted-foreground text-sm max-w-md mx-auto">
-                Enter a topic and get AI-powered content ideas for YouTube, Instagram, and Shorts
+                Enter a topic and get AI-powered content ideas
               </p>
             </div>
 
-            {/* Input */}
             <GenerateInput
               onGenerate={(topic) => generate(topic)}
               disabled={noCredits || loading}
               disabledMessage={noCredits ? 'No Credits Left' : loading ? 'Generating...' : undefined}
             />
 
-            {/* No credits message */}
             {noCredits && (
-              <div className="text-center space-y-2 opacity-0 animate-fade-up" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+              <div className="text-center space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  You're out of credits for today. Come back tomorrow.
+                  You're out of credits.
                 </p>
-                <p className="text-xs text-muted-foreground/60">
-                  More credits coming soon 👀
-                </p>
-              </div>
-            )}
 
-            {/* Toggle + Copy All */}
-            {hasContent && !loading && (
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <ContentToggle active={activeTab} onChange={setActiveTab} />
+                {/* BUY BUTTON */}
                 <button
-                  onClick={copyAll}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5 rounded-lg hover:bg-secondary/50 active:scale-95"
+                  onClick={() => setShowBuyModal(true)}
+                  className="px-4 py-2 bg-purple-600 rounded-lg text-sm mt-2"
                 >
-                  <Copy className="w-3.5 h-3.5" />
-                  Copy All
+                  Buy Credits
                 </button>
               </div>
             )}
 
-            {/* Loading */}
             {loading && <LoadingState />}
 
-            {/* Results */}
-            {!loading && activeTab === 'youtube' && content.youtube && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ContentCard
-                  emoji="🎬"
-                  title="Video Ideas"
-                  content={content.youtube.videoIdeas.map((idea, i) => `${i + 1}. ${idea.title}\n   ${idea.description}`).join('\n\n')}
-                  viralScore={Math.max(...content.youtube.videoIdeas.map(i => i.viralScore))}
-                  isBest
-                  delay={0}
-                  onRegenerate={() => generate(currentTopic, 'youtube')}
-                />
-                <ContentCard
-                  emoji="🧠"
-                  title="Full Script"
-                  content={`🪝 HOOK:\n${content.youtube.script.hook}\n\n📖 INTRO:\n${content.youtube.script.intro}\n\n📝 MAIN:\n${content.youtube.script.mainContent}\n\n👋 OUTRO:\n${content.youtube.script.outro}`}
-                  delay={80}
-                  onRegenerate={() => generate(currentTopic, 'youtube')}
-                />
-                <ContentCard
-                  emoji="📝"
-                  title="Title Options"
-                  content={content.youtube.titles.map((t, i) => `${i + 1}. ${t}`).join('\n')}
-                  delay={160}
-                  onRegenerate={() => generate(currentTopic, 'youtube')}
-                />
-                <ContentCard
-                  emoji="🖼️"
-                  title="Thumbnail Ideas"
-                  content={content.youtube.thumbnailIdeas.map((t, i) => `${i + 1}. ${t}`).join('\n')}
-                  delay={240}
-                  onRegenerate={() => generate(currentTopic, 'youtube')}
-                />
-                <ContentCard
-                  emoji="🔍"
-                  title="SEO Description"
-                  content={content.youtube.seoDescription}
-                  delay={320}
-                  onRegenerate={() => generate(currentTopic, 'youtube')}
-                />
-              </div>
-            )}
-
-            {!loading && activeTab === 'instagram' && content.instagram && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ContentCard
-                  emoji="📱"
-                  title="Instagram Caption"
-                  content={content.instagram.caption}
-                  delay={0}
-                  onRegenerate={() => generate(currentTopic, 'instagram')}
-                />
-                <ContentCard
-                  emoji="🔥"
-                  title="Trending Hashtags"
-                  content={content.instagram.hashtags.map(h => `#${h}`).join('  ')}
-                  delay={80}
-                  onRegenerate={() => generate(currentTopic, 'instagram')}
-                />
-              </div>
-            )}
-
-            {!loading && activeTab === 'shorts' && content.shorts && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {content.shorts.shortFormIdeas.map((idea, i) => (
-                  <ContentCard
-                    key={i}
-                    emoji="⚡"
-                    title={idea.title}
-                    content={`${idea.concept}\n\n🪝 Hook: ${idea.hook}`}
-                    viralScore={idea.viralScore}
-                    isBest={idea.viralScore === Math.max(...content.shorts!.shortFormIdeas.map(s => s.viralScore))}
-                    delay={i * 80}
-                    onRegenerate={() => generate(currentTopic, 'shorts')}
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Empty state when no content and not loading */}
             {!hasContent && !loading && (
-              <div className="text-center py-16 opacity-0 animate-fade-up" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+              <div className="text-center py-16">
                 <div className="text-5xl mb-4">✨</div>
                 <p className="text-muted-foreground text-sm">
                   Enter a topic above to generate viral content ideas
@@ -286,6 +196,36 @@ const Index: React.FC = () => {
           </div>
         </main>
       </div>
+
+      {/* 💳 BUY MODAL */}
+      {showBuyModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+          <div className="bg-[#111] p-6 rounded-xl text-center w-[320px]">
+            <h2 className="text-xl font-bold mb-2">Buy Credits</h2>
+
+            <p>₹10 → 10 credits</p>
+            <p>₹50 → 70 credits 🔥</p>
+            <p>₹100 → 150 credits 🚀</p>
+
+            <p className="mt-4 text-sm">Email:</p>
+            <p className="font-bold">aaru44968@gmail.com</p>
+
+            <a
+              href="mailto:aaru44968@gmail.com?subject=Buy Credits&body=Hi, I want to buy credits.%0APlan:%0AMy account email:%0A"
+              className="block mt-4 px-4 py-2 bg-purple-600 rounded-lg"
+            >
+              Email Now
+            </a>
+
+            <button
+              onClick={() => setShowBuyModal(false)}
+              className="mt-2 px-4 py-2 bg-gray-700 rounded-lg"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
