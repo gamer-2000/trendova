@@ -124,7 +124,7 @@ const Index: React.FC = () => {
     }
   };
 
-  const noCredits = credits < 5;
+  const noCredits = true;
   const hasContent = content.youtube || content.instagram || content.shorts;
 
   return (
